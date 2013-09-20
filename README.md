@@ -1,24 +1,18 @@
 # BackburnerSpec
 
-TODO: Write a gem description
+
 
 ## Installation
 
 Add this line to your application's Gemfile:
-
+  group :test do
     gem 'backburner_spec'
+  end
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install backburner_spec
+BackburnerSpec stubs main Backburner functionality, so it's recomended to use it ONLY in the test group
 
 ## Usage
 
-TODO: Write usage instructions here
 
 ## Contributing
 
