@@ -61,7 +61,12 @@ module BackburnerSpec
   end
 
   def perform(class_name, args)
+    args = code_and_parse(args)
     Kernel.const_get(class_name.to_s).perform(*args)
+  end
+
+  def code_and_parse(args)
+    args = JSON.parse(args.to_json)
   end
 end
 
