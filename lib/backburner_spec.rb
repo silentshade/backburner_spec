@@ -4,6 +4,7 @@ require "backburner_spec/helpers"
 require "backburner_spec/matchers"
 
 module BackburnerSpec
+  include Backburner::Helpers
   extend self
 
   attr_accessor :inline
@@ -13,30 +14,31 @@ module BackburnerSpec
     @queues ||= Hash.new {|h,k| h[k] = []}
   end
 
-  def reset!(class_name = nil)
+  def reset!
     queues.clear
     self.inline = false
   end
 
   def enqueue(job_class, args=[], opts={})
-    perform_or_store(job_class, args)
+    data = { class: job_class.name, args: args }
+    tube_name = expand_tube_name(opts[:queue]  || job_class)
+    perform_or_store(tube_name, data)
   end
 
-
-  def perform_for_class(class_name)
-    queue = queues[class_name.to_s]
+  def perform_for_tube(tube_name)
+    queue = queues[tube_name.to_s]
     queue.each { |args|
-      perform(class_name, args)
+      perform(tube_name, args)
     }
   end
 
-  def perform_first_for_class(class_name)
-    queue = queues[class_name.to_s]
-    perform(class_name, queue.first) 
+  def perform_first_for_tube(tube_name)
+    queue = queues[tube_name.to_s]
+    perform(tube_name, queue.first)
   end
 
   def perform_all
-    queues.keys.each {|k| perform_for_class(k) }
+    queues.keys.each {|t| perform_for_tube(t) }
   end
 
   def immediately_perform
@@ -45,28 +47,34 @@ module BackburnerSpec
     unstub_foo
   end
 
+  def job_class(class_string)
+    handler = constantize(class_string) rescue nil
+    raise(JobNotFound, class_string) unless handler
+    handler
+  end
 
   private 
 
-  def perform_or_store(class_name, args)
+  def perform_or_store(tube_name, payload)
     if inline
-      perform(class_name, args)
+      perform(tube_name, payload)
     else
-      store(class_name, args)
+      store(tube_name, payload)
     end
   end
 
-  def store(class_name, args)
-    queues[class_name.to_s] << args
+  def store(tube_name, payload)
+    queues[tube_name.to_s] << payload
   end
 
-  def perform(class_name, args)
-    args = code_and_parse(args)
-    Kernel.const_get(class_name.to_s).perform(*args)
+  def perform(tube_name, payload)
+    payload = code_and_parse(payload)
+    job_class(payload['class']).perform(*payload['args'])
   end
+
 
   def code_and_parse(args)
-    args = JSON.parse(args.to_json)
+    JSON.parse(args.to_json)
   end
 end
 
