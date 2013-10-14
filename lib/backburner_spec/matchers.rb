@@ -10,16 +10,6 @@ module InQueueHelper
       chain :in do |tube|
         @tube = tube
       end
-
-      chain :times do |num_times_queued|
-        @times = num_times_queued
-        @times_info = @times == 1 ? ' once' : " #{@times} times"
-      end
-
-      chain :once do |num_times_queued|
-        @times = 1
-        @times_info = ' once'
-      end
     end
   end
 
@@ -34,12 +24,6 @@ module InQueueHelper
     end
   end
 
-  def fetch_from_tube(klass, args, tube = nil)
-    fetch_for_class(klass, tube).select do |entry|
-      entry[:args] == args
-    end
-  end
-
   def check_matched_size(matched, times)
     if times
       matched.size == times
@@ -51,8 +35,29 @@ module InQueueHelper
 end
 
 
+module QueueCountHelper
+  include Backburner::Helpers
+  def self.extended(klass)
+    klass.instance_eval do
+      chain :times do |num_times_queued|
+        @times = num_times_queued
+        @times_info = @times == 1 ? ' once' : " #{@times} times"
+      end
+
+      chain :once do |num_times_queued|
+        @times = 1
+        @times_info = ' once'
+      end
+    end
+  end
+end
+
+
+
+
 RSpec::Matchers.define :have_performed do |method_name|
   extend InQueueHelper
+  extend QueueCountHelper
 
   chain :with do |*args|
     @args = args
@@ -68,9 +73,14 @@ RSpec::Matchers.define :have_performed do |method_name|
       actual_id = actual.id
     end
 
-    @args ||= []
+    matched = fetch_for_class(actual_class, @tube).select do |entry|
+      if @args 
+        entry[:args] == [actual_id, method_name] + @args
+      else
+        entry[:args].slice(0..1) == [actual_id, method_name]
+      end
+    end
 
-    matched = fetch_from_tube(actual_class, [actual_id, method_name] + @args, @tube)
     check_matched_size(matched, @times)
   end
 
@@ -89,9 +99,12 @@ end
 
 RSpec::Matchers.define :have_enqueued do |*expected_args|
   extend InQueueHelper
+  extend QueueCountHelper
 
   match do |actual_class|
-    matched = fetch_from_tube(actual, expected_args, @tube)  
+    matched = fetch_for_class(actual_class, @tube).select do |entry|
+      entry[:args] == expected_args
+    end
     check_matched_size(matched, @times)
   end
 
