@@ -31,9 +31,7 @@ module InQueueHelper
       matched.size > 0
     end
   end
-
 end
-
 
 module QueueCountHelper
   include Backburner::Helpers
@@ -51,9 +49,6 @@ module QueueCountHelper
     end
   end
 end
-
-
-
 
 RSpec::Matchers.define :have_performed do |method_name|
   extend InQueueHelper
@@ -74,10 +69,10 @@ RSpec::Matchers.define :have_performed do |method_name|
     end
 
     matched = fetch_for_class(actual_class, @tube).select do |entry|
-      if @args 
+      if @args
         entry[:args] == [actual_id, method_name] + @args
       else
-        entry[:args].slice(0..1) == [actual_id, method_name]
+        entry[:args].take(2) == [actual_id, method_name]
       end
     end
 

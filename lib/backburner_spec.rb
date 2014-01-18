@@ -26,15 +26,19 @@ module BackburnerSpec
   end
 
   def perform_for_tube(tube_name)
-    queue = queues[tube_name.to_s]
-    queue.each { |args|
-      perform(tube_name, args)
-    }
+    tube = get_tube(tube_name)
+    until tube.empty?
+      perform(tube.shift)
+    end
+  end
+
+  def get_tube(tube_name)
+    tube_name = expand_tube_name(tube_name)
+    queues[tube_name]
   end
 
   def perform_first_for_tube(tube_name)
-    queue = queues[tube_name.to_s]
-    perform(tube_name, queue.first)
+    perform(get_tube(tube_name).shift)
   end
 
   def perform_all
@@ -47,6 +51,11 @@ module BackburnerSpec
     unstub_foo
   end
 
+  def queue_for(klass)
+    tube_name = expand_tube_name(klass)
+    get_tube(tube_name)
+  end
+
   def job_class(class_string)
     handler = constantize(class_string) rescue nil
     raise(JobNotFound, class_string) unless handler
@@ -57,7 +66,7 @@ module BackburnerSpec
 
   def perform_or_store(tube_name, payload)
     if inline
-      perform(tube_name, payload)
+      perform(payload)
     else
       store(tube_name, payload)
     end
@@ -67,7 +76,7 @@ module BackburnerSpec
     queues[tube_name.to_s] << payload
   end
 
-  def perform(tube_name, payload)
+  def perform(payload)
     payload = code_and_parse(payload)
     job_class(payload['class']).perform(*payload['args'])
   end
