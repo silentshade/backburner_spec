@@ -19,9 +19,9 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency('backburner', ['>= 0.4.3'])
-  spec.add_runtime_dependency('rspec-core', ["~> 2.99"])
-  spec.add_runtime_dependency('rspec-expectations', ["~> 2.99"])
-  spec.add_runtime_dependency('rspec-mocks', ["~> 2.99"])
+  spec.add_runtime_dependency('rspec-core', ['>= 3.0.4'])
+  spec.add_runtime_dependency('rspec-expectations', ['>= 3.0.4'])
+  spec.add_runtime_dependency('rspec-mocks', ['>= 3.0.4'])
 
   spec.add_development_dependency "timecop"
   spec.add_development_dependency "bundler", "~> 1.3"

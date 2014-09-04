@@ -75,11 +75,11 @@ RSpec::Matchers.define :have_performed do |method_name|
     check_matched_size(matched, @times)
   end
 
-  failure_message_for_should do |actual|
+  failure_message do |actual|
     "expected that #{actual} would perform :#{method_name}#{@args_info}#{@times_info}"
   end
 
-  failure_message_for_should_not do |actual|
+  failure_message_when_negated do |actual|
     "expected that #{actual} would not perform :#{method_name}#{@args_info}#{@times_info}"
   end
 
@@ -99,11 +99,11 @@ RSpec::Matchers.define :have_enqueued do |*expected_args|
     check_matched_size(matched, @times)
   end
 
-  failure_message_for_should do |actual|
+  failure_message do |actual|
     "expected that #{actual} would enqueue :#{@actual_class.to_s} with #{expected_args}#{@times_info}"
   end
 
-  failure_message_for_should_not do |actual|
+  failure_message_when_negated do |actual|
     "expected that #{actual} would not enqueue :#{@actual_class.to_s} with #{expected_args}#{@times_info}"
   end
 
@@ -119,11 +119,11 @@ RSpec::Matchers.define :have_queue_size_of do |size|
     (@actual_size = fetch_que(actual, @tube).size) == size
   end
 
-  failure_message_for_should do |actual|
+  failure_message do |actual|
     "expected that #{actual} would have #{size} entries queued, but got #{@actual_size} instead"
   end
 
-  failure_message_for_should_not do |actual|
+  failure_message_when_negated do |actual|
     "expected that #{actual} would not have #{size} entries queued, but got #{@actual_size} instead"
   end
 
@@ -139,11 +139,11 @@ RSpec::Matchers.define :have_queue_size_of_at_least do |size|
     (@actual_size = fetch_que(actual, @tube).size) >= size
   end
 
-  failure_message_for_should do |actual|
+  failure_message do |actual|
     "expected that #{actual} would have at least #{size} entries queued, but got #{@actual_size} instead"
   end
 
-  failure_message_for_should_not do |actual|
+  failure_message_when_negated do |actual|
     "expected that #{actual} would not have at least #{size} entries queued, but got #{@actual_size} instead"
   end
 
