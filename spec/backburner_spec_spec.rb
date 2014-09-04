@@ -127,7 +127,7 @@ describe BackburnerSpec do
     it "resets the inline status" do
       BackburnerSpec.inline = true
       BackburnerSpec.reset!
-      BackburnerSpec.inline.should be_false
+      BackburnerSpec.inline.should be_falsey
     end
   end
 

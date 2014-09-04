@@ -2,16 +2,15 @@ require 'rspec/core'
 require 'rspec/expectations'
 require 'rspec/mocks'
 
+include Backburner::Helpers
 
 module InQueueHelper
-  include Backburner::Helpers
-  def self.extended(klass)
-    klass.instance_eval do
-      chain :in do |tube|
-        @tube = tube
-      end
-    end
+  def in(tube)
+    @tube = tube
+    self
   end
+  
+  private
 
   def fetch_que(klass, tube = nil)
     full_tube_name = expand_tube_name(tube || klass) 
@@ -34,25 +33,22 @@ module InQueueHelper
 end
 
 module QueueCountHelper
-  include Backburner::Helpers
-  def self.extended(klass)
-    klass.instance_eval do
-      chain :times do |num_times_queued|
-        @times = num_times_queued
-        @times_info = @times == 1 ? ' once' : " #{@times} times"
-      end
+  def times(num_times_queued)
+    @times = num_times_queued
+    @times_info = @times == 1 ? ' once' : " #{@times} times"
+    self
+  end
 
-      chain :once do |num_times_queued|
-        @times = 1
-        @times_info = ' once'
-      end
-    end
+  def once
+    @times = 1
+    @times_info = ' once'
+    self
   end
 end
 
 RSpec::Matchers.define :have_performed do |method_name|
-  extend InQueueHelper
-  extend QueueCountHelper
+  include InQueueHelper
+  include QueueCountHelper
 
   chain :with do |*args|
     @args = args
@@ -93,8 +89,8 @@ RSpec::Matchers.define :have_performed do |method_name|
 end
 
 RSpec::Matchers.define :have_enqueued do |*expected_args|
-  extend InQueueHelper
-  extend QueueCountHelper
+  include InQueueHelper
+  include QueueCountHelper
 
   match do |actual_class|
     matched = fetch_for_class(actual_class, @tube).select do |entry|
@@ -117,7 +113,7 @@ RSpec::Matchers.define :have_enqueued do |*expected_args|
 end
 
 RSpec::Matchers.define :have_queue_size_of do |size|
-  extend InQueueHelper
+  include InQueueHelper
 
   match do |actual|
     (@actual_size = fetch_que(actual, @tube).size) == size
@@ -137,7 +133,7 @@ RSpec::Matchers.define :have_queue_size_of do |size|
 end
 
 RSpec::Matchers.define :have_queue_size_of_at_least do |size|
-  extend InQueueHelper
+  include InQueueHelper
 
   match do |actual|
     (@actual_size = fetch_que(actual, @tube).size) >= size
