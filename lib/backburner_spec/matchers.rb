@@ -2,7 +2,7 @@ require 'rspec/core'
 require 'rspec/expectations'
 require 'rspec/mocks'
 
-include Backburner::Helpers
+#include Backburner::Helpers
 
 module InQueueHelper
   def in(tube)
